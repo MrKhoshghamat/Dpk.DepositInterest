@@ -1,0 +1,6 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="3Chum.IdentityServer4.AccessTokenValidation" Version="8.0.0" />
+    <PackageReference Include="Duende.IdentityServer" Version="7.2.1" />
+  </ItemGroup>
+</Project>

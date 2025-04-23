@@ -1,0 +1,36 @@
+﻿using Autofac;
+using Dapper;
+using Dpk.DepositInterest.BuildingBlocks.Application.Data;
+using Dpk.DepositInterest.BuildingBlocks.Infrastructure.EventBus;
+using Dpk.DepositInterest.BuildingBlocks.Infrastructure.Serialization;
+using Newtonsoft.Json;
+
+namespace Dpk.DepositInterest.Modules.Administration.Infrastructure.Configuration.EventsBus
+{
+    internal class IntegrationEventGenericHandler<T> : IIntegrationEventHandler<T>
+        where T : IntegrationEvent
+    {
+        public async Task Handle(T @event)
+        {
+            using var scope = AdministrationCompositionRoot.BeginLifetimeScope();
+            using var connection = scope.Resolve<ISqlConnectionFactory>().GetOpenConnection();
+
+            string type = @event.GetType().FullName;
+            var data = JsonConvert.SerializeObject(@event, new JsonSerializerSettings
+            {
+                ContractResolver = new AllPropertiesContractResolver()
+            });
+
+            var sql = "INSERT INTO [administration].[InboxMessages] (Id, OccurredOn, Type, Data) " +
+                      "VALUES (@Id, @OccurredOn, @Type, @Data)";
+
+            await connection.ExecuteScalarAsync(sql, new
+            {
+                @event.Id,
+                @event.OccurredOn,
+                type,
+                data
+            });
+        }
+    }
+}
